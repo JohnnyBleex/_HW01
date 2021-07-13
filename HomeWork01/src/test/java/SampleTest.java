@@ -9,7 +9,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 public class SampleTest {
     protected static WebDriver driver;
-    private Logger logger = LogManager.getLogger(SampleTest.class);
+    private final Logger logger = LogManager.getLogger(SampleTest.class);
 
     @BeforeEach
     public void setUp(){
