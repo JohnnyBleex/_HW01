@@ -14,8 +14,8 @@ import org.openqa.selenium.remote.CapabilityType;
 public class WebDriverFactory {
     private static final Logger logger = LogManager.getLogger(WebDriverFactory.class);
 
-    public static WebDriver getDriver(String browserName){
-        switch (browserName){
+    public static WebDriver getDriver(String browserName, String option) {
+        switch (browserName) {
             case "chrome":
                 ChromeOptions chromeOptions = new ChromeOptions();
                 WebDriverManager.chromedriver().setup();
@@ -23,7 +23,17 @@ public class WebDriverFactory {
                 chromeOptions.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR, UnexpectedAlertBehaviour.DISMISS);
                 chromeOptions.setCapability(CapabilityType.SUPPORTS_JAVASCRIPT, false);
                 chromeOptions.setAcceptInsecureCerts(false);
-                chromeOptions.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+                switch (option) {
+                    case "normal":
+                        chromeOptions.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+                        break;
+                    case "eager":
+                        chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+                        break;
+                    case "none":
+                        chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
+                        break;
+                }
 
                 chromeOptions.addArguments("--start-maximized");
                 chromeOptions.addArguments("--incognito");
@@ -38,8 +48,17 @@ public class WebDriverFactory {
                 firefoxOptions.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR, UnexpectedAlertBehaviour.DISMISS);
                 firefoxOptions.setCapability(CapabilityType.SUPPORTS_JAVASCRIPT, false);
                 firefoxOptions.setAcceptInsecureCerts(false);
-                firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-
+                switch (option) {
+                    case "normal":
+                        firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+                        break;
+                    case "eager":
+                        firefoxOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
+                        break;
+                    case "none":
+                        firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
+                        break;
+                }
                 firefoxOptions.addArguments("-private");
 
                 logger.info("Драйвер для браузера Firefox");

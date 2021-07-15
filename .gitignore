@@ -133,3 +133,8 @@ fabric.properties
 hs_err_pid*
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,java
+/HomeWork01/.idea/
+/HomeWork01/HomeWork01.iml
+/HomeWork01/logs.log
+/HomeWork01/target/
+/HomeWork01/

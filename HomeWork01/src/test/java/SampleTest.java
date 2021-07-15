@@ -16,11 +16,12 @@ public class SampleTest {
     private static final String dnsAddress = "https://www.dns-shop.ru/";
 
     String env = System.getProperty("browser", "chrome");
+    String option = System.getProperty("option","normal");
 
     @BeforeEach
     public void setUp() {
         logger.info("env = " + env);
-        driver = WebDriverFactory.getDriver(env.toLowerCase());
+        driver = WebDriverFactory.getDriver(env.toLowerCase(),option.toLowerCase());
         logger.info("Драйвер запущен");
     }
 
