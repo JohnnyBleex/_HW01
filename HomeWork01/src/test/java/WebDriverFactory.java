@@ -33,6 +33,8 @@ public class WebDriverFactory {
                     case "none":
                         chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
                         break;
+                    default:
+                        logger.info("Стратегия не назначена! (по умолчанию)");
                 }
 
                 chromeOptions.addArguments("--start-maximized");
@@ -58,6 +60,8 @@ public class WebDriverFactory {
                     case "none":
                         firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
                         break;
+                    default:
+                        logger.info("Стратегия не назначена! (NORMAL по умолчанию)");
                 }
                 firefoxOptions.addArguments("-private");
 
@@ -65,7 +69,7 @@ public class WebDriverFactory {
                 return new FirefoxDriver(firefoxOptions);
 
             default:
-                throw new RuntimeException();
+                throw new RuntimeException("Браузер не выбран или введен не коректно!");
         }
     }
 }

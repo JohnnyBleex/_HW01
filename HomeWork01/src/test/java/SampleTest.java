@@ -16,12 +16,13 @@ public class SampleTest {
     private static final String dnsAddress = "https://www.dns-shop.ru/";
 
     String env = System.getProperty("browser", "chrome");
-    String option = System.getProperty("option","normal");
+    String option = System.getProperty("option", "normal");
 
     @BeforeEach
     public void setUp() {
         logger.info("env = " + env);
-        driver = WebDriverFactory.getDriver(env.toLowerCase(),option.toLowerCase());
+        logger.info("Стратегия загрузки страници - " + option);
+        driver = WebDriverFactory.getDriver(env.toLowerCase(), option.toLowerCase());
         logger.info("Драйвер запущен");
     }
 
@@ -57,7 +58,7 @@ public class SampleTest {
     }
 
     @Test
-    public void addingCookies(){
+    public void addingCookies() {
         driver.get(dnsAddress);
         if (env.equals("firefox")) {
             driver.manage().window().fullscreen();
@@ -70,7 +71,7 @@ public class SampleTest {
     }
 
     @Test
-    public void cookieOutput(){
+    public void cookieOutput() {
         driver.get(dnsAddress);
         if (env.equals("firefox")) {
             driver.manage().window().fullscreen();
@@ -89,7 +90,6 @@ public class SampleTest {
             logger.info("Драйвер остановлен");
         }
     }
-
 
 
     public void waitingForAPage(long millis) {
