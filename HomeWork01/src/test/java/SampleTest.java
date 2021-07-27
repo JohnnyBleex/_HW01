@@ -29,9 +29,9 @@ public class SampleTest {
     @Test
     public void openPage() {
         driver.get(dnsAddress);
-        if (env.equals("firefox")) {
+        /*if (env.equals("firefox")) {
             driver.manage().window().fullscreen();
-        }
+        }*/
         logger.info("Открыта страница DNS - " + dnsAddress);
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
@@ -73,9 +73,6 @@ public class SampleTest {
     @Test
     public void cookieOutput() {
         driver.get(dnsAddress);
-        if (env.equals("firefox")) {
-            driver.manage().window().fullscreen();
-        }
         logger.info("Открыта страница DNS - " + dnsAddress);
 
         GettingCookies.getCookieOutput(driver);

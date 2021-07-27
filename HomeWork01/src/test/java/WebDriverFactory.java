@@ -63,6 +63,7 @@ public class WebDriverFactory {
                     default:
                         logger.info("Стратегия не назначена! (NORMAL по умолчанию)");
                 }
+                firefoxOptions.addArguments("-kiosk");
                 firefoxOptions.addArguments("-private");
 
                 logger.info("Драйвер для браузера Firefox");
