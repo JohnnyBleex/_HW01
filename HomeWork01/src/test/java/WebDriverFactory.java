@@ -34,7 +34,7 @@ public class WebDriverFactory {
                         chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
                         break;
                     default:
-                        logger.info("Стратегия не назначена! (по умолчанию)");
+                        logger.info("Стратегия загрузки страници не назначена! (NORMAL по умолчанию)");
                 }
 
                 chromeOptions.addArguments("--start-maximized");
@@ -61,7 +61,7 @@ public class WebDriverFactory {
                         firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
                         break;
                     default:
-                        logger.info("Стратегия не назначена! (NORMAL по умолчанию)");
+                        logger.info("Стратегия загрузки страници не назначена! (NORMAL по умолчанию)");
                 }
                 firefoxOptions.addArguments("-kiosk");
                 firefoxOptions.addArguments("-private");

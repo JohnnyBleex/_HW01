@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Sleeper;
 
 import java.time.Duration;
 import java.util.List;
@@ -29,9 +30,6 @@ public class SampleTest {
     @Test
     public void openPage() {
         driver.get(dnsAddress);
-        /*if (env.equals("firefox")) {
-            driver.manage().window().fullscreen();
-        }*/
         logger.info("Открыта страница DNS - " + dnsAddress);
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
@@ -54,20 +52,17 @@ public class SampleTest {
 
         GettingCookies.getCookieOutput(driver);
 
-        waitingForAPage(10000);
+        waitingForAPage(7);
     }
 
     @Test
     public void addingCookies() {
         driver.get(dnsAddress);
-        if (env.equals("firefox")) {
-            driver.manage().window().fullscreen();
-        }
         logger.info("Открыта страница DNS - " + dnsAddress);
 
         GettingCookies.creationOfCookies(driver);
 
-        waitingForAPage(5000);
+        waitingForAPage(5);
     }
 
     @Test
@@ -77,7 +72,7 @@ public class SampleTest {
 
         GettingCookies.getCookieOutput(driver);
 
-        waitingForAPage(5000);
+        waitingForAPage(5);
     }
 
     @AfterEach
@@ -89,9 +84,9 @@ public class SampleTest {
     }
 
 
-    public void waitingForAPage(long millis) {
+    public void waitingForAPage(int seconds) {
         try {
-            Thread.sleep(millis);
+            Sleeper.SYSTEM_SLEEPER.sleep(Duration.ofSeconds(seconds));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
