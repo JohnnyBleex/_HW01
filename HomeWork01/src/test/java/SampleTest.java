@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Sleeper;
 
 import java.time.Duration;
 import java.util.List;
@@ -15,25 +16,23 @@ public class SampleTest {
     private final Logger logger = LogManager.getLogger(SampleTest.class);
     private static final String dnsAddress = "https://www.dns-shop.ru/";
 
-    String env = System.getProperty("browser", "chrome");
+    String browser = System.getProperty("browser", "chrome");
     String option = System.getProperty("option", "normal");
 
     @BeforeEach
     public void setUp() {
-        logger.info("env = " + env);
+        logger.info("Браузер = " + browser);
         logger.info("Стратегия загрузки страници - " + option);
-        driver = WebDriverFactory.getDriver(env.toLowerCase(), option.toLowerCase());
+        driver = WebDriverFactory.getDriver(browser.toLowerCase(), option.toLowerCase());
         logger.info("Драйвер запущен");
     }
 
     @Test
     public void openPage() {
-        driver.get(dnsAddress);
-        if (env.equals("firefox")) {
-            driver.manage().window().fullscreen();
-        }
-        logger.info("Открыта страница DNS - " + dnsAddress);
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
+
+        driver.get(dnsAddress);
+        logger.info("Открыта страница DNS - " + dnsAddress);
 
         WebElement elementChooseACity = driver.findElement(By.xpath("//a[@class='btn btn-additional']"));
         elementChooseACity.click();
@@ -54,33 +53,7 @@ public class SampleTest {
 
         GettingCookies.getCookieOutput(driver);
 
-        waitingForAPage(10000);
-    }
-
-    @Test
-    public void addingCookies() {
-        driver.get(dnsAddress);
-        if (env.equals("firefox")) {
-            driver.manage().window().fullscreen();
-        }
-        logger.info("Открыта страница DNS - " + dnsAddress);
-
-        GettingCookies.creationOfCookies(driver);
-
-        waitingForAPage(5000);
-    }
-
-    @Test
-    public void cookieOutput() {
-        driver.get(dnsAddress);
-        if (env.equals("firefox")) {
-            driver.manage().window().fullscreen();
-        }
-        logger.info("Открыта страница DNS - " + dnsAddress);
-
-        GettingCookies.getCookieOutput(driver);
-
-        waitingForAPage(5000);
+        waitingForAPage(10);
     }
 
     @AfterEach
@@ -92,9 +65,9 @@ public class SampleTest {
     }
 
 
-    public void waitingForAPage(long millis) {
+    public void waitingForAPage(int seconds) {
         try {
-            Thread.sleep(millis);
+            Sleeper.SYSTEM_SLEEPER.sleep(Duration.ofSeconds(seconds));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
