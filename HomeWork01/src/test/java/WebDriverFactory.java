@@ -15,6 +15,24 @@ public class WebDriverFactory {
     private static final Logger logger = LogManager.getLogger(WebDriverFactory.class);
 
     public static WebDriver getDriver(String browserName, String option) {
+        PageLoadStrategy strategy = null;
+
+        switch (option){
+            case "normal":
+                strategy = PageLoadStrategy.NORMAL;
+                break;
+            case "eager":
+                strategy = PageLoadStrategy.EAGER;
+                break;
+            case "none":
+                strategy = PageLoadStrategy.NONE;
+                break;
+            default:
+                strategy = PageLoadStrategy.NORMAL;
+                logger.info("Стратегии загрузки страницы с таким названием нет. Будет включена стратегия по умолчанию - normal");
+                break;
+        }
+
         switch (browserName) {
             case "chrome":
                 ChromeOptions chromeOptions = new ChromeOptions();
@@ -22,20 +40,8 @@ public class WebDriverFactory {
                 chromeOptions.setCapability(CapabilityType.PLATFORM_NAME, Platform.WINDOWS);
                 chromeOptions.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR, UnexpectedAlertBehaviour.DISMISS);
                 chromeOptions.setCapability(CapabilityType.SUPPORTS_JAVASCRIPT, false);
+                chromeOptions.setPageLoadStrategy(strategy);
                 chromeOptions.setAcceptInsecureCerts(false);
-                switch (option) {
-                    case "normal":
-                        chromeOptions.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                        break;
-                    case "eager":
-                        chromeOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-                        break;
-                    case "none":
-                        chromeOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
-                        break;
-                    default:
-                        logger.info("Стратегия загрузки страници не назначена! (NORMAL по умолчанию)");
-                }
 
                 chromeOptions.addArguments("--start-maximized");
                 chromeOptions.addArguments("--incognito");
@@ -49,20 +55,9 @@ public class WebDriverFactory {
                 firefoxOptions.setCapability(CapabilityType.PLATFORM_NAME, Platform.WINDOWS);
                 firefoxOptions.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR, UnexpectedAlertBehaviour.DISMISS);
                 firefoxOptions.setCapability(CapabilityType.SUPPORTS_JAVASCRIPT, false);
+                firefoxOptions.setPageLoadStrategy(strategy);
                 firefoxOptions.setAcceptInsecureCerts(false);
-                switch (option) {
-                    case "normal":
-                        firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                        break;
-                    case "eager":
-                        firefoxOptions.setPageLoadStrategy(PageLoadStrategy.EAGER);
-                        break;
-                    case "none":
-                        firefoxOptions.setPageLoadStrategy(PageLoadStrategy.NONE);
-                        break;
-                    default:
-                        logger.info("Стратегия загрузки страници не назначена! (NORMAL по умолчанию)");
-                }
+
                 firefoxOptions.addArguments("-kiosk");
                 firefoxOptions.addArguments("-private");
 

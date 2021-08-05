@@ -16,22 +16,23 @@ public class SampleTest {
     private final Logger logger = LogManager.getLogger(SampleTest.class);
     private static final String dnsAddress = "https://www.dns-shop.ru/";
 
-    String env = System.getProperty("browser", "chrome");
+    String browser = System.getProperty("browser", "chrome");
     String option = System.getProperty("option", "normal");
 
     @BeforeEach
     public void setUp() {
-        logger.info("env = " + env);
+        logger.info("Браузер = " + browser);
         logger.info("Стратегия загрузки страници - " + option);
-        driver = WebDriverFactory.getDriver(env.toLowerCase(), option.toLowerCase());
+        driver = WebDriverFactory.getDriver(browser.toLowerCase(), option.toLowerCase());
         logger.info("Драйвер запущен");
     }
 
     @Test
     public void openPage() {
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
+
         driver.get(dnsAddress);
         logger.info("Открыта страница DNS - " + dnsAddress);
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
         WebElement elementChooseACity = driver.findElement(By.xpath("//a[@class='btn btn-additional']"));
         elementChooseACity.click();
@@ -52,27 +53,7 @@ public class SampleTest {
 
         GettingCookies.getCookieOutput(driver);
 
-        waitingForAPage(7);
-    }
-
-    @Test
-    public void addingCookies() {
-        driver.get(dnsAddress);
-        logger.info("Открыта страница DNS - " + dnsAddress);
-
-        GettingCookies.creationOfCookies(driver);
-
-        waitingForAPage(5);
-    }
-
-    @Test
-    public void cookieOutput() {
-        driver.get(dnsAddress);
-        logger.info("Открыта страница DNS - " + dnsAddress);
-
-        GettingCookies.getCookieOutput(driver);
-
-        waitingForAPage(5);
+        waitingForAPage(10);
     }
 
     @AfterEach
