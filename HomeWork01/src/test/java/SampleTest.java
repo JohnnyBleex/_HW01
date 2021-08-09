@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 
 public class SampleTest {
     protected static WebDriver driver;
@@ -63,33 +64,101 @@ public class SampleTest {
     }
 
     @Test
-    public void openPageDnsAndFinedSmartPhone(){
+    public void openPageDnsAndFinedSmartPhone() {
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
         driver.get(dnsAddress);
         logger.info("Открыта страница DNS - " + dnsAddress);
 
+        Actions actions = new Actions(driver);
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
+
+        // Подтвердить город
         WebElement elementChooseACity = driver.findElement(By.xpath("//a[@class='btn btn-additional']"));
         elementChooseACity.click();
 
+        // Навестись на смартфоны и гаджеты что бы открылось меню
         WebElement smartphonesAndGadgets = driver.findElement(By.xpath("//div/a[text()='Смартфоны и гаджеты']"));
-        Actions actions = new Actions(driver);
         actions.moveToElement(smartphonesAndGadgets).perform();
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
+        // Нажать на ссылку смартфоны
         By smartphonesXpath = By.xpath("//div/a[text()='Смартфоны']");
         wait.until(ExpectedConditions.visibilityOfElementLocated(smartphonesXpath));
-
         WebElement smartphones = driver.findElement(smartphonesXpath);
         smartphones.click();
 
-        try {
-            Screenshot screenshot = new AShot().takeScreenshot(driver);
-            ImageIO.write(screenshot.getImage(), "png", new File("screens\\ASViewablePage.png"));
-            logger.info("Скриншот сохранен в папку screens");
-        }catch (IOException exception){
-            exception.printStackTrace();
-        }
+        // Сделать скриншот
+        getScreenShot("screens\\1_ScreenPageSmartphones.png");
+
+        // Пролистать страницу вниз
+        js.executeScript("window.scrollBy(0,1000);");
+
+        // Выбрать в филтре производитель Samsung
+        By samsungCheckBoxXpath = By.xpath("//span[text()='Samsung  ']");
+        WebElement samsungCheckBox = driver.findElement(samsungCheckBoxXpath);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(samsungCheckBoxXpath));
+        samsungCheckBox.click();
+
+        // Пролистать страницу вниз
+        js.executeScript("window.scrollBy(0,500);");
+
+        // Открыть выподайщее меню объем оперативной памяти
+        By ramSizeFilterXpath = By.xpath("//a/span[text()='Объем оперативной памяти']");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(ramSizeFilterXpath));
+        WebElement ramSizeFilter = driver.findElement(ramSizeFilterXpath);
+        ramSizeFilter.click();
+
+        // Выбрать в филтре оперативной памяти 8 гб
+        By ramSizeCheckBoxXpath = By.xpath("//span[text()='8 Гб  ']");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(ramSizeCheckBoxXpath));
+        WebElement ramSizeCheckBox = driver.findElement(ramSizeCheckBoxXpath);
+        ramSizeCheckBox.click();
+
+        // Пролистать страницу вниз
+        js.executeScript("window.scrollBy(0,500);");
+
+        // Нажать кнопку применить
+        WebElement confirmButton = driver.findElement(By.xpath("//button[@data-role='filters-submit']"));
+        confirmButton.click();
+
+        // Открыть выподающее меню сортировки
+        By sortElementXpath = By.xpath("//a/span[text()='Сначала недорогие']");
+        wait.until(ExpectedConditions.elementToBeClickable(sortElementXpath));
+        WebElement sortElement = driver.findElement(sortElementXpath);
+        actions.moveToElement(sortElement)
+                .click()
+                .perform();
+
+        // Выбрать сортировку по цене сначало дорогие
+        By sortDearFirstXpath = By.xpath("//span[text()='Сначала дорогие']");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(sortDearFirstXpath));
+        WebElement sortDearFirst = driver.findElement(sortDearFirstXpath);
+        sortDearFirst.click();
+
+        By firstElementXpath = By.xpath("//div[@class='products-list__content']/div[2]/div[1]/a");
+        wait.until(ExpectedConditions.elementToBeClickable(firstElementXpath));
+
+        // Сделать скриншот
+        getScreenShot("screens\\2_ScreenPageSmartphonesSortDearFirst.png");
+
+        Set<String> oldWindowSet = driver.getWindowHandles();
+
+        WebElement firstElement = driver.findElement(firstElementXpath);
+        actions.keyDown(Keys.SHIFT)
+                .click(firstElement)
+                .keyUp(Keys.SHIFT)
+                .perform();
+
+        Set<String> newWindowSet = driver.getWindowHandles();
+        newWindowSet.removeAll(oldWindowSet);
+        String newWindow = newWindowSet.iterator().next();
+        driver.switchTo().window(newWindow);
+
+        getScreenShot("screens\\3_ScreenNewPage.png");
+
+        waitingForAPage(5);
+
     }
 
     @AfterEach
@@ -100,6 +169,15 @@ public class SampleTest {
         }
     }
 
+    public void getScreenShot(String path) {
+        try {
+            Screenshot screenshot = new AShot().takeScreenshot(driver);
+            ImageIO.write(screenshot.getImage(), "png", new File(path));
+            logger.info("Скриншот сохранен в папку screens");
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
 
     public void waitingForAPage(int seconds) {
         try {
