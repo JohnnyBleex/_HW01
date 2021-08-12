@@ -1,11 +1,13 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Sleeper;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import ru.yandex.qatools.ashot.AShot;
@@ -34,7 +36,7 @@ public class SampleTest {
         logger.info("Драйвер запущен");
     }
 
-    @Test
+    /*@Test
     public void openPage() {
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
@@ -61,7 +63,7 @@ public class SampleTest {
         GettingCookies.getCookieOutput(driver);
 
         waitingForAPage(10);
-    }
+    }*/
 
     @Test
     public void openPageDnsAndFinedSmartPhone() {
@@ -72,7 +74,11 @@ public class SampleTest {
 
         Actions actions = new Actions(driver);
         JavascriptExecutor js = (JavascriptExecutor) driver;
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        FluentWait<WebDriver> fluentWait = new FluentWait<>(driver)
+                .withTimeout(Duration.ofSeconds(10))
+                .pollingEvery(Duration.ofSeconds(10))
+                .ignoring(StaleElementReferenceException.class);
 
         // Подтвердить город
         WebElement elementChooseACity = driver.findElement(By.xpath("//a[@class='btn btn-additional']"));
@@ -80,7 +86,8 @@ public class SampleTest {
 
         // Навестись на смартфоны и гаджеты что бы открылось меню
         WebElement smartphonesAndGadgets = driver.findElement(By.xpath("//div/a[text()='Смартфоны и гаджеты']"));
-        actions.moveToElement(smartphonesAndGadgets).perform();
+        actions.moveToElement(smartphonesAndGadgets)
+                .perform();
 
         // Нажать на ссылку смартфоны
         By smartphonesXpath = By.xpath("//div/a[text()='Смартфоны']");
@@ -91,21 +98,18 @@ public class SampleTest {
         // Сделать скриншот
         getScreenShot("screens\\1_ScreenPageSmartphones.png");
 
-        // Пролистать страницу вниз
-        js.executeScript("window.scrollBy(0,1000);");
-
+        // Пролистать страницу вниз до элемента
+        WebElement elementBrand = driver.findElement(By.xpath("//div[@data-id='brand']"));
+        js.executeScript("arguments[0].scrollIntoView(true);", elementBrand);
         // Выбрать в филтре производитель Samsung
         By samsungCheckBoxXpath = By.xpath("//span[text()='Samsung  ']");
+        wait.until(ExpectedConditions.elementToBeClickable(samsungCheckBoxXpath));
         WebElement samsungCheckBox = driver.findElement(samsungCheckBoxXpath);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(samsungCheckBoxXpath));
         samsungCheckBox.click();
-
-        // Пролистать страницу вниз
-        js.executeScript("window.scrollBy(0,500);");
 
         // Открыть выподайщее меню объем оперативной памяти
         By ramSizeFilterXpath = By.xpath("//a/span[text()='Объем оперативной памяти']");
-        wait.until(ExpectedConditions.visibilityOfElementLocated(ramSizeFilterXpath));
+        wait.until(ExpectedConditions.elementToBeClickable(ramSizeFilterXpath));
         WebElement ramSizeFilter = driver.findElement(ramSizeFilterXpath);
         ramSizeFilter.click();
 
@@ -113,10 +117,9 @@ public class SampleTest {
         By ramSizeCheckBoxXpath = By.xpath("//span[text()='8 Гб  ']");
         wait.until(ExpectedConditions.visibilityOfElementLocated(ramSizeCheckBoxXpath));
         WebElement ramSizeCheckBox = driver.findElement(ramSizeCheckBoxXpath);
+        // Пролистать страницу вниз до элемента
+        js.executeScript("arguments[0].scrollIntoView(true);", ramSizeCheckBox);
         ramSizeCheckBox.click();
-
-        // Пролистать страницу вниз
-        js.executeScript("window.scrollBy(0,500);");
 
         // Нажать кнопку применить
         WebElement confirmButton = driver.findElement(By.xpath("//button[@data-role='filters-submit']"));
@@ -136,17 +139,21 @@ public class SampleTest {
         WebElement sortDearFirst = driver.findElement(sortDearFirstXpath);
         sortDearFirst.click();
 
-        By firstElementXpath = By.xpath("//div[@class='products-list__content']/div[2]/div[1]/a");
-        wait.until(ExpectedConditions.elementToBeClickable(firstElementXpath));
-
-        // Сделать скриншот
-        getScreenShot("screens\\2_ScreenPageSmartphonesSortDearFirst.png");
+        // Подождать пока прогрузится список элементов
+        By listOfItems = By.xpath("//div[@class='products-list__content']");
+        fluentWait.until(ExpectedConditions.elementToBeClickable(listOfItems));
 
         Set<String> oldWindowSet = driver.getWindowHandles();
 
-        WebElement firstElement = driver.findElement(firstElementXpath);
-        actions.keyDown(Keys.SHIFT)
-                .click(firstElement)
+        // Найти список элементов
+        By firstElementXpath = By.xpath("//div[@data-id='product']");
+        List<WebElement> firstElements = driver.findElements(firstElementXpath);
+        // Сделать скриншот
+        getScreenShot("screens\\2_ScreenPageSmartphonesSortDearFirst.png");
+        // Нажать на первый элемент в списке
+        actions.moveToElement(firstElements.get(0), 0, -70)
+                .keyDown(Keys.SHIFT)
+                .click()
                 .keyUp(Keys.SHIFT)
                 .perform();
 
@@ -156,6 +163,36 @@ public class SampleTest {
         driver.switchTo().window(newWindow);
 
         getScreenShot("screens\\3_ScreenNewPage.png");
+
+        // Сравнить ожидаемый заголовок страницы
+        try {
+            String expectedTitle = "Купить 6.7\" Смартфон Samsung Galaxy Z Flip3 256 ГБ бежевый в интернет магазине DNS. Характеристики, цена Samsung Galaxy Z Flip3 | 4845670";
+            String title = driver.getTitle();
+            Assertions.assertEquals(title, expectedTitle, "Заголовок страници не соответствует ожидаемому!");
+            logger.info("Заголовок соответствует ожидаемому.");
+        } catch (StaleElementReferenceException e) {
+            logger.info("Ссылка на элемент больше не действует!");
+        }
+
+        // Пролистать стрраницу вниз до элемента
+        WebElement descriptionXpath = driver.findElement(By.xpath("//div[@class='price-item-description']"));
+        js.executeScript("arguments[0].scrollIntoView(true);", descriptionXpath);
+        // Открыть пункт характеристики
+        By characteristicsXpath = By.xpath("//a[text()='Характеристики']");
+        WebElement characteristics = driver.findElement(characteristicsXpath);
+        wait.until(ExpectedConditions.elementToBeClickable(characteristics));
+        characteristics.click();
+
+        try {
+            String expectedRamSize = "8 Гб";
+            By rumSizeTextXpath = By.xpath("//div[text()=' 8 Гб']");
+            wait.until(ExpectedConditions.visibilityOfElementLocated(rumSizeTextXpath));
+            WebElement rumSizeText = driver.findElement(rumSizeTextXpath);
+            Assertions.assertEquals(expectedRamSize, rumSizeText.getText(), "Значение ОЗУ не ноответствует выбраному!");
+            logger.info("Значение ОЗУ соответствует ождаемому.");
+        } catch (StaleElementReferenceException e) {
+            logger.info("Ссылка на элемент больше не действует!");
+        }
 
         waitingForAPage(5);
 
