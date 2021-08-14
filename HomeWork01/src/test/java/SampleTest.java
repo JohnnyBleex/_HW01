@@ -6,10 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.FluentWait;
-import org.openqa.selenium.support.ui.Sleeper;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.events.EventFiringDecorator;
+import org.openqa.selenium.support.ui.*;
 import ru.yandex.qatools.ashot.AShot;
 import ru.yandex.qatools.ashot.Screenshot;
 
@@ -62,26 +60,29 @@ public class SampleTest {
 
         GettingCookies.getCookieOutput(driver);
 
-        waitingForAPage(10);
+        waitingForAPage(5);
     }*/
 
     @Test
     public void openPageDnsAndFinedSmartPhone() {
+        SeleniumListener listener = new SeleniumListener();
+        WebDriver eventDriver = new EventFiringDecorator(listener).decorate(driver);
+
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
-        driver.get(dnsAddress);
+        eventDriver.get(dnsAddress);
         logger.info("Открыта страница DNS - " + dnsAddress);
 
-        Actions actions = new Actions(driver);
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        FluentWait<WebDriver> fluentWait = new FluentWait<>(driver)
+        Actions actions = new Actions(eventDriver);
+        JavascriptExecutor js = (JavascriptExecutor) eventDriver;
+        WebDriverWait wait = new WebDriverWait(eventDriver, Duration.ofSeconds(10));
+        FluentWait<WebDriver> fluentWait = new FluentWait<>(eventDriver)
                 .withTimeout(Duration.ofSeconds(10))
                 .pollingEvery(Duration.ofSeconds(10))
                 .ignoring(StaleElementReferenceException.class);
 
         // Подтвердить город
-        WebElement elementChooseACity = driver.findElement(By.xpath("//a[@class='btn btn-additional']"));
+        WebElement elementChooseACity = eventDriver.findElement(By.xpath("//a[@class='btn btn-additional']"));
         elementChooseACity.click();
 
         // Навестись на смартфоны и гаджеты что бы открылось меню
@@ -92,7 +93,7 @@ public class SampleTest {
         // Нажать на ссылку смартфоны
         By smartphonesXpath = By.xpath("//div/a[text()='Смартфоны']");
         wait.until(ExpectedConditions.visibilityOfElementLocated(smartphonesXpath));
-        WebElement smartphones = driver.findElement(smartphonesXpath);
+        WebElement smartphones = eventDriver.findElement(smartphonesXpath);
         smartphones.click();
 
         // Сделать скриншот
@@ -103,47 +104,48 @@ public class SampleTest {
         js.executeScript("arguments[0].scrollIntoView(true);", elementBrand);
         // Выбрать в филтре производитель Samsung
         By samsungCheckBoxXpath = By.xpath("//span[text()='Samsung  ']");
-        wait.until(ExpectedConditions.elementToBeClickable(samsungCheckBoxXpath));
-        WebElement samsungCheckBox = driver.findElement(samsungCheckBoxXpath);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(samsungCheckBoxXpath));
+        WebElement samsungCheckBox = eventDriver.findElement(samsungCheckBoxXpath);
         samsungCheckBox.click();
 
         // Открыть выподайщее меню объем оперативной памяти
         By ramSizeFilterXpath = By.xpath("//a/span[text()='Объем оперативной памяти']");
-        wait.until(ExpectedConditions.elementToBeClickable(ramSizeFilterXpath));
-        WebElement ramSizeFilter = driver.findElement(ramSizeFilterXpath);
+        WebElement ramSizeFilter = eventDriver.findElement(ramSizeFilterXpath);
+        wait.until(ExpectedConditions.elementToBeClickable(ramSizeFilter));
         ramSizeFilter.click();
+
+        // Пролистать вниз до элемента (Кнопка применить)
+        WebElement confirmButton = eventDriver.findElement(By.xpath("//button[@data-role='filters-submit']"));
+        js.executeScript("arguments[0].scrollIntoView(true);", confirmButton);
 
         // Выбрать в филтре оперативной памяти 8 гб
         By ramSizeCheckBoxXpath = By.xpath("//span[text()='8 Гб  ']");
         wait.until(ExpectedConditions.visibilityOfElementLocated(ramSizeCheckBoxXpath));
-        WebElement ramSizeCheckBox = driver.findElement(ramSizeCheckBoxXpath);
-        // Пролистать страницу вниз до элемента
-        js.executeScript("arguments[0].scrollIntoView(true);", ramSizeCheckBox);
+        WebElement ramSizeCheckBox = eventDriver.findElement(ramSizeCheckBoxXpath);
         ramSizeCheckBox.click();
 
         // Нажать кнопку применить
-        WebElement confirmButton = driver.findElement(By.xpath("//button[@data-role='filters-submit']"));
+        wait.until(ExpectedConditions.elementToBeClickable(confirmButton));
         confirmButton.click();
 
         // Открыть выподающее меню сортировки
         By sortElementXpath = By.xpath("//a/span[text()='Сначала недорогие']");
-        wait.until(ExpectedConditions.elementToBeClickable(sortElementXpath));
-        WebElement sortElement = driver.findElement(sortElementXpath);
-        actions.moveToElement(sortElement)
-                .click()
-                .perform();
+        WebElement sortElement = eventDriver.findElement(sortElementXpath);
+        js.executeScript("arguments[0].scrollIntoView(false);", sortElement);
+        wait.until(ExpectedConditions.visibilityOf(sortElement));
+        sortElement.click();
 
         // Выбрать сортировку по цене сначало дорогие
         By sortDearFirstXpath = By.xpath("//span[text()='Сначала дорогие']");
         wait.until(ExpectedConditions.visibilityOfElementLocated(sortDearFirstXpath));
-        WebElement sortDearFirst = driver.findElement(sortDearFirstXpath);
+        WebElement sortDearFirst = eventDriver.findElement(sortDearFirstXpath);
         sortDearFirst.click();
 
         // Подождать пока прогрузится список элементов
         By listOfItems = By.xpath("//div[@class='products-list__content']");
         fluentWait.until(ExpectedConditions.elementToBeClickable(listOfItems));
 
-        Set<String> oldWindowSet = driver.getWindowHandles();
+        Set<String> oldWindowSet = eventDriver.getWindowHandles();
 
         // Найти список элементов
         By firstElementXpath = By.xpath("//div[@data-id='product']");
@@ -157,17 +159,26 @@ public class SampleTest {
                 .keyUp(Keys.SHIFT)
                 .perform();
 
-        Set<String> newWindowSet = driver.getWindowHandles();
-        newWindowSet.removeAll(oldWindowSet);
-        String newWindow = newWindowSet.iterator().next();
-        driver.switchTo().window(newWindow);
+        // Переключится на новое окно
+        try {
+            Set<String> newWindowSet = eventDriver.getWindowHandles();
+            newWindowSet.removeAll(oldWindowSet);
+            String newWindow = newWindowSet.iterator().next();
+            eventDriver.switchTo().window(newWindow);
+            //wait.until(driver->driver.findElement(By.xpath("//div[@class='price-item-description']")));
+        }catch (NoSuchWindowException e){
+            logger.info("окна с заданным именем не найдено!");
+        }catch (StaleElementReferenceException e){
+            logger.info("Ссылка на элемент больше не действительна!");
+        }
 
+        // Сделать скриншот
         getScreenShot("screens\\3_ScreenNewPage.png");
 
         // Сравнить ожидаемый заголовок страницы
         try {
             String expectedTitle = "Купить 6.7\" Смартфон Samsung Galaxy Z Flip3 256 ГБ бежевый в интернет магазине DNS. Характеристики, цена Samsung Galaxy Z Flip3 | 4845670";
-            String title = driver.getTitle();
+            String title = eventDriver.getTitle();
             Assertions.assertEquals(title, expectedTitle, "Заголовок страници не соответствует ожидаемому!");
             logger.info("Заголовок соответствует ожидаемому.");
         } catch (StaleElementReferenceException e) {
@@ -179,23 +190,21 @@ public class SampleTest {
         js.executeScript("arguments[0].scrollIntoView(true);", descriptionXpath);
         // Открыть пункт характеристики
         By characteristicsXpath = By.xpath("//a[text()='Характеристики']");
-        WebElement characteristics = driver.findElement(characteristicsXpath);
+        WebElement characteristics = eventDriver.findElement(characteristicsXpath);
         wait.until(ExpectedConditions.elementToBeClickable(characteristics));
         characteristics.click();
 
+        // Сравнить ожидаемый объем ОЗУ
         try {
             String expectedRamSize = "8 Гб";
             By rumSizeTextXpath = By.xpath("//div[text()=' 8 Гб']");
             wait.until(ExpectedConditions.visibilityOfElementLocated(rumSizeTextXpath));
-            WebElement rumSizeText = driver.findElement(rumSizeTextXpath);
+            WebElement rumSizeText = eventDriver.findElement(rumSizeTextXpath);
             Assertions.assertEquals(expectedRamSize, rumSizeText.getText(), "Значение ОЗУ не ноответствует выбраному!");
             logger.info("Значение ОЗУ соответствует ождаемому.");
         } catch (StaleElementReferenceException e) {
             logger.info("Ссылка на элемент больше не действует!");
         }
-
-        waitingForAPage(5);
-
     }
 
     @AfterEach
