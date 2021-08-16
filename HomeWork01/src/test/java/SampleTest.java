@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 
 public class SampleTest {
     protected static WebDriver driver;
@@ -34,7 +33,7 @@ public class SampleTest {
         logger.info("Драйвер запущен");
     }
 
-    /*@Test
+    @Test
     public void openPage() {
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
@@ -61,7 +60,7 @@ public class SampleTest {
         GettingCookies.getCookieOutput(driver);
 
         waitingForAPage(5);
-    }*/
+    }
 
     @Test
     public void openPageDnsAndFinedSmartPhone() {
@@ -129,13 +128,13 @@ public class SampleTest {
         confirmButton.click();
 
         // Открыть выподающее меню сортировки
-        By sortElementXpath = By.xpath("//a/span[text()='Сначала недорогие']");
+        By sortElementXpath = By.xpath("//div[@data-id='order']");
         WebElement sortElement = eventDriver.findElement(sortElementXpath);
-        js.executeScript("arguments[0].scrollIntoView(false);", sortElement);
-        wait.until(ExpectedConditions.visibilityOf(sortElement));
+        js.executeScript("arguments[0].scrollIntoView(false);", sortElement); // Скрипт с котором работает хром, но не работает FireFox
+        fluentWait.until(ExpectedConditions.visibilityOf(sortElement));
         sortElement.click();
 
-        // Выбрать сортировку по цене сначало дорогие
+        // Выбрать сортировку по цене "сначало дорогие"
         By sortDearFirstXpath = By.xpath("//span[text()='Сначала дорогие']");
         wait.until(ExpectedConditions.visibilityOfElementLocated(sortDearFirstXpath));
         WebElement sortDearFirst = eventDriver.findElement(sortDearFirstXpath);
@@ -145,11 +144,10 @@ public class SampleTest {
         By listOfItems = By.xpath("//div[@class='products-list__content']");
         fluentWait.until(ExpectedConditions.elementToBeClickable(listOfItems));
 
-        Set<String> oldWindowSet = eventDriver.getWindowHandles();
-
-        // Найти список элементов
+/*        // Найти список элементов
         By firstElementXpath = By.xpath("//div[@data-id='product']");
         List<WebElement> firstElements = driver.findElements(firstElementXpath);
+        wait.until(ExpectedConditions.elementToBeClickable(firstElements.get(0)));
         // Сделать скриншот
         getScreenShot("screens\\2_ScreenPageSmartphonesSortDearFirst.png");
         // Нажать на первый элемент в списке
@@ -157,23 +155,31 @@ public class SampleTest {
                 .keyDown(Keys.SHIFT)
                 .click()
                 .keyUp(Keys.SHIFT)
-                .perform();
+                .perform();*/
+
+        By firstElementXpath = By.xpath("//div[@data-id='product']/a");
+        List<WebElement> firstElements = driver.findElements(firstElementXpath);
+        fluentWait.until(ExpectedConditions.elementToBeClickable(firstElements.get(0)));
+        getScreenShot("screens\\2_ScreenPageSmartphonesSortDearFirst.png");
+        firstElements.get(0).click();
 
         // Переключится на новое окно
         try {
-            Set<String> newWindowSet = eventDriver.getWindowHandles();
-            newWindowSet.removeAll(oldWindowSet);
+/*            Set<String> newWindowSet = eventDriver.getWindowHandles();
             String newWindow = newWindowSet.iterator().next();
-            eventDriver.switchTo().window(newWindow);
-            //wait.until(driver->driver.findElement(By.xpath("//div[@class='price-item-description']")));
-        }catch (NoSuchWindowException e){
-            logger.info("окна с заданным именем не найдено!");
-        }catch (StaleElementReferenceException e){
-            logger.info("Ссылка на элемент больше не действительна!");
-        }
+            eventDriver.switchTo().window(newWindow);*/
 
-        // Сделать скриншот
-        getScreenShot("screens\\3_ScreenNewPage.png");
+            String newUrlPage = eventDriver.getCurrentUrl();
+            eventDriver.switchTo().newWindow(WindowType.WINDOW);
+            eventDriver.manage().window().maximize();
+            eventDriver.get(newUrlPage);
+        } catch (NoSuchWindowException e) {
+            logger.info("окна с заданным именем не найдено!");
+            e.printStackTrace();
+        } catch (StaleElementReferenceException e) {
+            logger.info("Ссылка на элемент больше не действительна!");
+            e.printStackTrace();
+        }
 
         // Сравнить ожидаемый заголовок страницы
         try {
@@ -183,11 +189,18 @@ public class SampleTest {
             logger.info("Заголовок соответствует ожидаемому.");
         } catch (StaleElementReferenceException e) {
             logger.info("Ссылка на элемент больше не действует!");
+            e.printStackTrace();
         }
 
+        // Ожидать пока страница прогру
+        WebElement description = driver.findElement(By.xpath("//div[@class='price-item-description']"));
+        wait.until(driver->description);
+
+        // Сделать скриншот
+        getScreenShot("screens\\3_ScreenNewPage.png");
+
         // Пролистать стрраницу вниз до элемента
-        WebElement descriptionXpath = driver.findElement(By.xpath("//div[@class='price-item-description']"));
-        js.executeScript("arguments[0].scrollIntoView(true);", descriptionXpath);
+        js.executeScript("arguments[0].scrollIntoView(true);", description);
         // Открыть пункт характеристики
         By characteristicsXpath = By.xpath("//a[text()='Характеристики']");
         WebElement characteristics = eventDriver.findElement(characteristicsXpath);
@@ -204,7 +217,10 @@ public class SampleTest {
             logger.info("Значение ОЗУ соответствует ождаемому.");
         } catch (StaleElementReferenceException e) {
             logger.info("Ссылка на элемент больше не действует!");
+            e.printStackTrace();
         }
+
+        waitingForAPage(5);
     }
 
     @AfterEach
@@ -219,7 +235,7 @@ public class SampleTest {
         try {
             Screenshot screenshot = new AShot().takeScreenshot(driver);
             ImageIO.write(screenshot.getImage(), "png", new File(path));
-            logger.info("Скриншот сохранен в папку screens");
+            logger.info("Скриншот сохранен в " + path);
         } catch (IOException exception) {
             exception.printStackTrace();
         }
